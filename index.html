@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>TaskBox</title>
+</head>
+<body>
+    <div class="background-icons"></div>
+
+    <div class="container">
+        <div class="header">To-Do list</div>
+        <div class="addTask">
+            <input type="text" placeholder="Add a new Task" id="inputTask">
+            <button id="addTaskBtn">Add Task</button>
+        </div>
+        <ul class="Task-List" id="Task-List"></ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputTask = document.getElementById('inputTask');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskList = document.getElementById('Task-List');
+            
+            // --- Initial Setup ---
+            loadTasks();
+            createBackgroundAnimation();
+
+            // --- Event Listeners ---
+            addTaskBtn.addEventListener('click', addTask);
+
+            inputTask.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addTask();
+                }
+            });
+
+
+            // --- Core Functions ---
+
+            /**
+             * Retrieves tasks from localStorage.
+             * @returns {Array} An array of task objects.
+             */
+            function getTasksFromStorage() {
+                const tasks = localStorage.getItem('tasks');
+                return tasks ? JSON.parse(tasks) : [];
+            }
+
+            /**
+             * Saves an array of tasks to localStorage.
+             * @param {Array} tasks The array of tasks to save.
+             */
+            function saveTasksToStorage(tasks) {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+            
+            /**
+             * Renders a single task object to the screen.
+             * @param {object} task The task object {id, text, date}.
+             */
+            function renderTask(task) {
+                const newTask = document.createElement('li');
+                newTask.setAttribute('data-id', task.id);
+
+                const taskContent = document.createElement('div');
+                
+                const taskSpan = document.createElement('span');
+                taskSpan.textContent = task.text;
+
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = `Added: ${task.date}`;
+                dateSpan.style.fontSize = '0.7em';
+                dateSpan.style.color = '#333';
+                
+                taskContent.appendChild(taskSpan);
+                taskContent.appendChild(document.createElement('br'));
+                taskContent.appendChild(dateSpan);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'deleteBtn';
+                
+                deleteBtn.addEventListener('click', () => {
+                    deleteTask(task.id);
+                });
+
+                newTask.appendChild(taskContent);
+                newTask.appendChild(deleteBtn);
+                
+                taskList.appendChild(newTask);
+            }
+
+
+            function loadTasks() {
+                const tasks = getTasksFromStorage();
+                tasks.forEach(task => renderTask(task));
+            }
+
+            function addTask() {
+                const taskText = inputTask.value.trim();
+
+                if (taskText !== '') {
+                    const newTask = {
+                        id: Date.now(),
+                        text: taskText,
+                        date: new Date().toLocaleDateString() 
+                    };
+
+                    const tasks = getTasksFromStorage();
+                    tasks.push(newTask);
+                    saveTasksToStorage(tasks);
+                    
+                    renderTask(newTask);
+
+                    inputTask.value = '';
+                }
+            }
+
+            /**
+             * Deletes a task from the screen and from storage.
+             * @param {number} id The ID of the task to delete.
+             */
+            function deleteTask(id) {
+                let tasks = getTasksFromStorage();
+                tasks = tasks.filter(task => task.id !== id);
+                saveTasksToStorage(tasks);
+
+                const taskElement = document.querySelector(`[data-id="${id}"]`);
+                if (taskElement) {
+                    taskList.removeChild(taskElement);
+                }
+            }
+
+            /**
+             * Creates and animates background icons.
+             */
+            function createBackgroundAnimation() {
+                const iconContainer = document.querySelector('.background-icons');
+                if (!iconContainer) return;
+
+                const icons =  ['📚', '🏋️‍♂️', '✈️', '💻', '🎓', '💪', '🌍', '👨‍💻','🏃‍♀️','💩','🤸🏻','🛒','🎞️','📽️','🍿'];
+                const numberOfIcons = 25;
+
+                for (let i = 0; i < numberOfIcons; i++) {
+                    const icon = document.createElement('span');
+                    icon.classList.add('icon');
+                    
+                    icon.innerText = icons[Math.floor(Math.random() * icons.length)];
+                    
+                    icon.style.left = `${Math.random() * 100}vw`;
+                    icon.style.fontSize = `${Math.random() * 1.5 + 1}rem`;
+                    icon.style.animationDuration = `${Math.random() * 15 + 5}s`;
+                    icon.style.animationDelay = `${Math.random() * 1}s`;
+
+                    iconContainer.appendChild(icon);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
